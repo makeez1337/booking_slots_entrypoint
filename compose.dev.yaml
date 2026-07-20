@@ -1,0 +1,8 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: development
+    volumes:
+      - ./backend:/app
+    command: npm run start:dev
