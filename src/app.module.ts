@@ -2,9 +2,16 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule} from "@nestjs/typeorm";
-import {CacheModule} from "@nestjs/cache-manager";
+import { CacheModule } from "@nestjs/cache-manager";
 import KeyvRedis from "@keyv/redis";
-import {RedisModule} from "./core/redis/redis.module";
+import { RedisModule } from "./core/redis/redis.module";
+import { UsersModule } from "./users/users.module";
+import { VenuesModule } from "./venues/venues.module";
+import { ResourcesModule } from "./resources/resources.module";
+import { SlotsModule } from "./slots/slots.module";
+import { BookingsModule } from "./bookings/bookings.module";
+import { PaymentsModule } from "./payments/payments.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 
 @Module({
   imports: [
@@ -17,6 +24,7 @@ import {RedisModule} from "./core/redis/redis.module";
       database: 'app',
       autoLoadEntities: true,
       synchronize: true,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
     }),
     CacheModule.register({
       isGlobal: true,
@@ -28,6 +36,13 @@ import {RedisModule} from "./core/redis/redis.module";
       ],
     }),
     RedisModule,
+    UsersModule,
+    VenuesModule,
+    ResourcesModule,
+    SlotsModule,
+    BookingsModule,
+    PaymentsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
