@@ -11,10 +11,8 @@ import {REDIS_CLIENT} from "./redis.constants";
       useFactory: () => {
         return new Redis({
           host: process.env.REDIS_HOST || 'redis',
-          // port: parseInt(process.env.REDIS_PORT, 10) || 6379,
           port: 6379,
-          // password: process.env.REDIS_PASSWORD,
-          maxRetriesPerRequest: null, // Critical for robust connection retries
+          maxRetriesPerRequest: null,
         });
       },
     },

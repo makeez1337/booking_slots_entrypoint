@@ -2,11 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Booking } from '../../bookings/entities/booking.entity';
 
 @Entity('users')
 export class User {
@@ -24,9 +22,6 @@ export class User {
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   phone: string | null;
-
-  @OneToMany(() => Booking, (booking) => booking.user)
-  bookings: Booking[];
 
   @CreateDateColumn()
   created_at: Date;
