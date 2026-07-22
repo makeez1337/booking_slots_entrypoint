@@ -27,4 +27,22 @@ export class RedisService implements OnModuleDestroy {
   async onModuleDestroy() {
     await this.redisClient.quit();
   }
+
+  async isRateLimited(clientId: string, limit: number, windowSeconds: number) {
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const windowId = Math.floor(currentTimestamp / windowSeconds);
+    const redisKey = `ratelimit:${clientId}:${windowId}`;
+
+    const currentCount = await this.redisClient.incr(redisKey);
+
+    if (currentCount === 1) {
+      await this.redisClient.expire(redisKey, windowSeconds);
+    }
+
+    if (currentCount > limit) {
+      return true;
+    }
+
+    return false;
+  }
 }

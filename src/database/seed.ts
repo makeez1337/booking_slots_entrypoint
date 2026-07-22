@@ -58,11 +58,24 @@ async function seed(): Promise<void> {
 
   const resourceRepo = dataSource.getRepository(Resource);
   const slotRepo = dataSource.getRepository(Slot);
+  const userRepo = dataSource.getRepository(User);
 
   // Idempotent: wipe existing data so re-running is safe (FK-safe order).
   await dataSource.getRepository(Booking).createQueryBuilder().delete().execute();
   await slotRepo.createQueryBuilder().delete().execute();
   await resourceRepo.createQueryBuilder().delete().execute();
+
+  // Demo users (needed so bookings have a valid user_id FK). Upsert by email
+  // so we don't wipe any real users you may already have.
+  await userRepo.upsert(
+    [
+      { email: 'alice@example.com', first_name: 'Alice', last_name: 'Demo' },
+      { email: 'bob@example.com', first_name: 'Bob', last_name: 'Demo' },
+    ],
+    ['email'],
+  );
+  const users = await userRepo.find();
+  console.log(`  users available: ${users.length}`);
 
   let totalSlots = 0;
   for (const def of RESOURCES) {

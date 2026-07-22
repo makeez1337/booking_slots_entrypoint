@@ -10,6 +10,7 @@ import { UsersModule } from "./users/users.module";
 import { ResourcesModule } from "./resources/resources.module";
 import { SlotsModule } from "./slots/slots.module";
 import { BookingsModule } from "./bookings/bookings.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { BookingsModule } from "./bookings/bookings.module";
     ResourcesModule,
     SlotsModule,
     BookingsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

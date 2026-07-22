@@ -10,9 +10,10 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: ['amqp://rabbitmq:rabbitmq@rabbitmq:5672'],
-      queue: 'test_queue',
+      queue: 'notifications_queue',
       queueOptions: {
         durable: true,
+        deadLetterExchange: 'retry_exchange',
       },
       noAck: false,
     },
