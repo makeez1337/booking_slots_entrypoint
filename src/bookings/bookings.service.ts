@@ -10,8 +10,8 @@ import { Booking, BookingStatus } from './entities/booking.entity';
 import { Slot } from '../slots/entities/slot.entity';
 import { RedisService } from '../core/redis/redis.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { ClientProxy } from "@nestjs/microservices";
-import { NOTIFICATIONS_SERVICE_CLIENT } from "../notifications/notifications.constants";
+import {AmqpConnection} from "@golevelup/nestjs-rabbitmq";
+import {MAIN_EXCHANGE} from "../app.module";
 
 @Injectable()
 export class BookingsService {
@@ -20,7 +20,7 @@ export class BookingsService {
     private readonly bookingRepo: Repository<Booking>,
     private readonly redis: RedisService,
     @InjectDataSource() private readonly dataSource: DataSource,
-    @Inject(NOTIFICATIONS_SERVICE_CLIENT) private readonly clientProxy: ClientProxy,
+    private readonly amqp: AmqpConnection,
   ) {}
 
   async create(dto: CreateBookingDto): Promise<Booking> {
@@ -59,7 +59,11 @@ export class BookingsService {
 
       await queryRunner.commitTransaction()
 
-      this.clientProxy.emit('booking.created', { userId: dto.userId, slotId: slot.id })
+      const payload = { userId: dto.userId, slotId: slot.id };
+      await this.amqp.publish(MAIN_EXCHANGE, 'booking.created', payload, {
+        persistent: true,
+        headers: {},
+      });
 
       return booking
     } catch (error) {
