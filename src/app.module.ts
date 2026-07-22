@@ -12,16 +12,15 @@ import { SlotsModule } from "./slots/slots.module";
 import { BookingsModule } from "./bookings/bookings.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
-
-export const MAIN_EXCHANGE = 'main.exchange';
-export const RETRY_EXCHANGE = 'retry.exchange';
-export const DLQ_EXCHANGE = 'dlq.exchange';
-
-export const MAIN_QUEUE = 'notifications.queue';
-export const RETRY_QUEUE = 'notifications.retry.queue';
-export const DLQ_QUEUE = 'notifications.dlq';
-
-const RETRY_TTL_MS = 10_000; // базова затримка 10с
+import {
+  MAIN_EXCHANGE,
+  RETRY_EXCHANGE,
+  DLQ_EXCHANGE,
+  MAIN_QUEUE,
+  RETRY_QUEUE,
+  DLQ_QUEUE,
+  RETRY_TTL_MS,
+} from "./notifications/notifications.constants";
 
 @Global()
 @Module({

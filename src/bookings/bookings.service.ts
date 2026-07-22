@@ -11,7 +11,7 @@ import { Slot } from '../slots/entities/slot.entity';
 import { RedisService } from '../core/redis/redis.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import {AmqpConnection} from "@golevelup/nestjs-rabbitmq";
-import {MAIN_EXCHANGE} from "../app.module";
+import {MAIN_EXCHANGE} from "../notifications/notifications.constants";
 
 @Injectable()
 export class BookingsService {

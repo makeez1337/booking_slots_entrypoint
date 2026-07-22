@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { AmqpConnection, RabbitSubscribe } from "@golevelup/nestjs-rabbitmq";
-import {DLQ_EXCHANGE, MAIN_EXCHANGE, MAIN_QUEUE, RETRY_EXCHANGE} from "../app.module";
+import { DLQ_EXCHANGE, MAIN_EXCHANGE, MAIN_QUEUE, RETRY_EXCHANGE } from "./notifications.constants";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../users/entities/user.entity";
 import { Repository } from "typeorm";
@@ -20,13 +20,11 @@ export class NotificationsConsumer {
     queue: MAIN_QUEUE,
     queueOptions: { durable: true },
   })
-  async bookingCreated(msg: unknown, amqpMsg: any) {
-    console.log(msg, "MESSAGE++");
-
+  async bookingCreated(msg: { userId: string; slotId: string }, amqpMsg: any) {
     try {
       const user = await this.userRepository.findOne({
         where: {
-          id: 'asdqwe',
+          id: msg.userId,
         }
       })
 
@@ -36,43 +34,32 @@ export class NotificationsConsumer {
 
       console.log(`Email sent to user with email: ${user?.email}`)
     } catch (error) {
-      const retryCount = this.getRetryCount(amqpMsg);
+      const retryCount = amqpMsg?.properties?.headers?.['x-retry-count'] ?? 0;
+      const next = retryCount + 1;
 
       console.warn(
-        `Помилка обробки, спроба ${retryCount + 1}/${this.MAX_RETRY_COUNT}: ${error.message}`,
+        `Failed processing, attempt ${next}/${this.MAX_RETRY_COUNT}: ${error.message}`,
       );
 
-      if (retryCount >= this.MAX_RETRY_COUNT) {
-        // вичерпали спроби — відправляємо у фінальну DLQ вручну,
-        // додавши причину помилки для дебагу
+      if (next >= this.MAX_RETRY_COUNT) {
         await this.amqp.publish(DLQ_EXCHANGE, 'booking.failed', msg, {
           persistent: true,
           headers: {
             'x-original-error': error.message,
-            'x-retry-count': retryCount,
+            'x-retry-count': next,
             'x-failed-at': new Date().toISOString(),
           },
         });
-        return; // ack — забираємо з основного потоку
+        return;
       }
 
-      // відправляємо в retry-чергу — там повідомлення почекає TTL
-      // і саме повернеться в main.queue
       await this.amqp.publish(RETRY_EXCHANGE, 'booking.retry', msg, {
         persistent: true,
+        headers: {
+          'x-retry-count': next,
+        },
       });
-      return; // ack оригінального повідомлення, бо копію вже відправили в retry
+      return;
     }
-  }
-
-  private getRetryCount(amqpMsg: any): number {
-    const deathHeader = amqpMsg?.properties?.headers?.['x-death'];
-    if (!deathHeader || !Array.isArray(deathHeader)) return 0;
-    // сумуємо count по всіх "смертях" через retry-чергу
-    console.log(deathHeader, 'DEATH HEADER');
-    const retryDeath = deathHeader.find(
-      (d: any) => d.queue === 'notifications.retry.queue',
-    );
-    return retryDeath?.count ?? 0;
   }
 }
