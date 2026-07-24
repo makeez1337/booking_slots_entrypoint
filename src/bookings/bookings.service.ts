@@ -10,8 +10,9 @@ import { Booking, BookingStatus } from './entities/booking.entity';
 import { Slot } from '../slots/entities/slot.entity';
 import { RedisService } from '../core/redis/redis.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import {AmqpConnection} from "@golevelup/nestjs-rabbitmq";
-import {MAIN_EXCHANGE} from "../notifications/notifications.constants";
+import { AmqpConnection } from "@golevelup/nestjs-rabbitmq";
+import { MAIN_EXCHANGE } from "../notifications/notifications.constants";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 
 @Injectable()
 export class BookingsService {
@@ -21,6 +22,7 @@ export class BookingsService {
     private readonly redis: RedisService,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly amqp: AmqpConnection,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async create(dto: CreateBookingDto): Promise<Booking> {
@@ -64,6 +66,8 @@ export class BookingsService {
         persistent: true,
         headers: {},
       });
+
+      await this.cacheManager.del('/slots/available')
 
       return booking
     } catch (error) {
