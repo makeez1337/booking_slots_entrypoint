@@ -3,8 +3,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule} from "@nestjs/typeorm";
 import { CacheModule } from "@nestjs/cache-manager";
-import KeyvRedis from "@keyv/redis";
+import KeyvValkey from "@keyv/valkey";
+import Redis from "ioredis";
 import { RedisModule } from "./core/redis/redis.module";
+import { REDIS_CLIENT } from "./core/redis/redis.constants";
 import { databaseConfig } from "./core/database/database.config";
 import { UsersModule } from "./users/users.module";
 import { ResourcesModule } from "./resources/resources.module";
@@ -26,14 +28,12 @@ import {
 @Module({
   imports: [
     TypeOrmModule.forRoot(databaseConfig),
-    CacheModule.register({
+    CacheModule.registerAsync({
       isGlobal: true,
-      stores: [
-        new KeyvRedis('redis://redis:6379', {
-          throwOnConnectError: true,
-          throwOnErrors: true,
-        })
-      ],
+      inject: [REDIS_CLIENT],
+      useFactory: (client: Redis) => ({
+        stores: [new KeyvValkey(client as any)],
+      }),
     }),
     RabbitMQModule.forRoot({
       exchanges: [

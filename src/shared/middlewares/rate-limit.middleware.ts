@@ -22,7 +22,6 @@ export class RateLimitMiddleware implements NestMiddleware {
       );
     }
 
-    // Always call next() to pass execution to the next handler
     next();
   }
 }
