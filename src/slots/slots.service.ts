@@ -11,7 +11,6 @@ export class SlotsService {
   }
 
   async getAvailable() {
-    console.log('NOT CACHED CALL')
     const [data, count] = await this.slotsRepository
       .createQueryBuilder('slot')
       .where('slot.booked_count < slot.capacity')

@@ -23,6 +23,7 @@ import {
   DLQ_QUEUE,
   RETRY_TTL_MS,
 } from "./notifications/notifications.constants";
+import { WebsocketModule } from "./websocket/websocket.module";
 
 @Global()
 @Module({
@@ -74,6 +75,7 @@ import {
     SlotsModule,
     BookingsModule,
     NotificationsModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
